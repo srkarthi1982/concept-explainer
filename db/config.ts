@@ -1,17 +1,8 @@
 import { defineDb } from "astro:db";
-import {
-  Concepts,
-  ConceptSteps,
-  ConceptChecks,
-  ConceptJobs,
-} from "./tables";
+import { Concepts } from "./tables";
 
-// https://astro.build/db/config
 export default defineDb({
   tables: {
     Concepts,
-    ConceptSteps,
-    ConceptChecks,
-    ConceptJobs,
   },
 });
