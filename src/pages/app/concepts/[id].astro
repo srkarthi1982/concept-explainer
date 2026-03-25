@@ -1,0 +1,90 @@
+---
+import { and, db, eq } from "astro:db";
+import AppShell from "../../../layouts/AppShell.astro";
+import { Concepts } from "../../../../db/tables";
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect("/");
+
+const conceptId = Number(Astro.params.id);
+if (!Number.isInteger(conceptId)) throw new Error("Invalid concept id.");
+
+const [concept] = await db
+  .select()
+  .from(Concepts)
+  .where(and(eq(Concepts.id, conceptId), eq(Concepts.userId, user.id)))
+  .limit(1);
+
+if (!concept) {
+  return Astro.redirect("/app?section=concepts");
+}
+---
+
+<AppShell title={concept.title} description="Concept detail">
+  <main class="mx-auto max-w-4xl px-6 py-10 space-y-6 text-slate-100">
+    <a href="/app?section=concepts" class="text-sm text-slate-400 hover:text-slate-200">← Back to concepts</a>
+    <header class="rounded-lg border border-slate-700 bg-slate-900 p-6">
+      <div class="flex items-start justify-between">
+        <div>
+          <h1 class="text-3xl font-semibold">{concept.title}</h1>
+          <p class="text-sm text-slate-400 mt-1">{concept.subject ?? "No subject"} · {concept.topic ?? "No topic"}</p>
+        </div>
+        {concept.isImportant && <span class="rounded bg-amber-500/20 px-2 py-1 text-xs text-amber-100">Important</span>}
+      </div>
+    </header>
+
+    <section class="rounded-lg border border-slate-700 bg-slate-900 p-6 space-y-4">
+      <div>
+        <h2 class="text-lg font-semibold">Explanation</h2>
+        <p class="mt-2 whitespace-pre-wrap text-slate-200">{concept.explanation}</p>
+      </div>
+      {concept.exampleText && (
+        <div>
+          <h2 class="text-lg font-semibold">Example</h2>
+          <p class="mt-2 whitespace-pre-wrap text-slate-200">{concept.exampleText}</p>
+        </div>
+      )}
+      {concept.notes && (
+        <div>
+          <h2 class="text-lg font-semibold">Notes</h2>
+          <p class="mt-2 whitespace-pre-wrap text-slate-200">{concept.notes}</p>
+        </div>
+      )}
+    </section>
+
+    <section class="rounded-lg border border-slate-700 bg-slate-900 p-6 space-y-3">
+      <h2 class="text-lg font-semibold">Metadata</h2>
+      <p class="text-sm text-slate-300">Status: {concept.status}</p>
+      <p class="text-sm text-slate-300">Created: {new Date(concept.createdAt).toLocaleString()}</p>
+      <p class="text-sm text-slate-300">Updated: {new Date(concept.updatedAt).toLocaleString()}</p>
+      {concept.archivedAt && <p class="text-sm text-slate-300">Archived: {new Date(concept.archivedAt).toLocaleString()}</p>}
+    </section>
+
+    <section class="flex flex-wrap gap-2">
+      <button class="rounded bg-slate-700 px-3 py-2 text-sm" onclick="document.getElementById('edit-drawer').showModal()">Edit</button>
+      <form method="POST" action="/api/concepts/toggle-important">
+        <input type="hidden" name="id" value={concept.id} />
+        <button class="rounded bg-slate-700 px-3 py-2 text-sm" type="submit">{concept.isImportant ? "Unmark important" : "Mark important"}</button>
+      </form>
+      <form method="POST" action={concept.status === "archived" ? "/api/concepts/restore" : "/api/concepts/archive"}>
+        <input type="hidden" name="id" value={concept.id} />
+        <button class="rounded bg-slate-700 px-3 py-2 text-sm" type="submit">{concept.status === "archived" ? "Restore" : "Archive"}</button>
+      </form>
+    </section>
+
+    <dialog id="edit-drawer" class="w-full max-w-2xl rounded-lg bg-slate-900 p-0 text-slate-100 backdrop:bg-black/60">
+      <form method="dialog" class="flex justify-end p-3"><button class="rounded bg-slate-700 px-3 py-1">Close</button></form>
+      <form method="POST" action="/api/concepts/update" class="grid gap-3 p-5">
+        <h3 class="text-xl font-semibold">Edit concept</h3>
+        <input type="hidden" name="id" value={concept.id} />
+        <input class="rounded bg-slate-800 px-3 py-2" name="title" value={concept.title} required />
+        <input class="rounded bg-slate-800 px-3 py-2" name="subject" value={concept.subject ?? ""} />
+        <input class="rounded bg-slate-800 px-3 py-2" name="topic" value={concept.topic ?? ""} />
+        <textarea class="min-h-28 rounded bg-slate-800 px-3 py-2" name="explanation" required>{concept.explanation}</textarea>
+        <textarea class="min-h-20 rounded bg-slate-800 px-3 py-2" name="exampleText">{concept.exampleText ?? ""}</textarea>
+        <textarea class="min-h-20 rounded bg-slate-800 px-3 py-2" name="notes">{concept.notes ?? ""}</textarea>
+        <button class="rounded bg-indigo-500 px-4 py-2" type="submit">Save changes</button>
+      </form>
+    </dialog>
+  </main>
+</AppShell>

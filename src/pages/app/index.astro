@@ -1,0 +1,149 @@
+---
+import { db, desc, eq } from "astro:db";
+import { Concepts } from "../../../db/tables";
+import AppShell from "../../layouts/AppShell.astro";
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect("/");
+
+const section = (Astro.url.searchParams.get("section") ?? "overview").toLowerCase();
+const q = (Astro.url.searchParams.get("q") ?? "").trim().toLowerCase();
+const subjectFilter = (Astro.url.searchParams.get("subject") ?? "").trim();
+const topicFilter = (Astro.url.searchParams.get("topic") ?? "").trim();
+
+const allConcepts = await db
+  .select()
+  .from(Concepts)
+  .where(eq(Concepts.userId, user.id))
+  .orderBy(desc(Concepts.updatedAt));
+
+const summary = {
+  total: allConcepts.length,
+  active: allConcepts.filter((concept) => concept.status === "active").length,
+  important: allConcepts.filter((concept) => concept.isImportant).length,
+  archived: allConcepts.filter((concept) => concept.status === "archived").length,
+};
+
+const recentConcept = allConcepts[0];
+
+const showStatus = section === "archived" ? "archived" : "active";
+const importantOnly = section === "important";
+
+const concepts = allConcepts.filter((concept) => {
+  const inSection = concept.status === showStatus;
+  const important = importantOnly ? concept.isImportant : true;
+  const queryMatch = q
+    ? [concept.title, concept.subject, concept.topic, concept.explanation, concept.notes]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(q))
+    : true;
+  const subjectMatch = subjectFilter ? concept.subject === subjectFilter : true;
+  const topicMatch = topicFilter ? concept.topic === topicFilter : true;
+  return inSection && important && queryMatch && subjectMatch && topicMatch;
+});
+
+const subjects = Array.from(new Set(allConcepts.map((concept) => concept.subject).filter(Boolean)));
+const topics = Array.from(new Set(allConcepts.map((concept) => concept.topic).filter(Boolean)));
+const firstConceptCreated = allConcepts.length > 0;
+const firstImportantConcept = allConcepts.some((concept) => concept.isImportant);
+---
+
+<AppShell title="Concept Explainer App" description="Manage your concepts clearly.">
+  <main class="mx-auto max-w-6xl px-6 py-10 space-y-6 text-slate-100">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-semibold">Concept Explainer</h1>
+        <p class="text-slate-400">User-written explanations, examples, and notes.</p>
+      </div>
+      <button
+        type="button"
+        class="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium hover:bg-indigo-400"
+        onclick="document.getElementById('create-drawer').showModal()"
+      >
+        New Concept
+      </button>
+    </div>
+
+    <section class="grid gap-4 md:grid-cols-4">
+      <article class="rounded-lg border border-slate-700 bg-slate-900 p-4"><p class="text-xs text-slate-400">Total</p><p class="text-2xl font-semibold">{summary.total}</p></article>
+      <article class="rounded-lg border border-slate-700 bg-slate-900 p-4"><p class="text-xs text-slate-400">Active</p><p class="text-2xl font-semibold">{summary.active}</p></article>
+      <article class="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4"><p class="text-xs text-amber-200">Important</p><p class="text-2xl font-semibold text-amber-100">{summary.important}</p></article>
+      <article class="rounded-lg border border-slate-700 bg-slate-900 p-4"><p class="text-xs text-slate-400">Archived</p><p class="text-2xl font-semibold">{summary.archived}</p></article>
+    </section>
+
+    <section class="rounded-lg border border-slate-700 bg-slate-900 p-4">
+      <h2 class="text-lg font-semibold">Dashboard Integration (appId: concept-explainer)</h2>
+      <p class="text-sm text-slate-400">Recent concept: {recentConcept ? recentConcept.title : "No concepts yet"}</p>
+    </section>
+
+    <section class="rounded-lg border border-slate-700 bg-slate-900 p-4">
+      <h2 class="text-lg font-semibold">Notifications</h2>
+      <ul class="mt-2 list-disc pl-5 text-sm text-slate-300">
+        <li class={firstConceptCreated ? "text-emerald-300" : ""}>First concept created {firstConceptCreated ? "✓" : "(pending)"}</li>
+        <li class={firstImportantConcept ? "text-emerald-300" : ""}>First important concept {firstImportantConcept ? "✓" : "(pending)"}</li>
+      </ul>
+    </section>
+
+    <nav class="flex gap-2 text-sm">
+      <a class={`rounded-md px-3 py-1 ${section === "overview" ? "bg-indigo-500" : "bg-slate-800"}`} href="/app?section=overview">Overview</a>
+      <a class={`rounded-md px-3 py-1 ${section === "concepts" || section === "overview" ? "bg-indigo-500" : "bg-slate-800"}`} href="/app?section=concepts">Concepts</a>
+      <a class={`rounded-md px-3 py-1 ${section === "important" ? "bg-indigo-500" : "bg-slate-800"}`} href="/app?section=important">Important</a>
+      <a class={`rounded-md px-3 py-1 ${section === "archived" ? "bg-indigo-500" : "bg-slate-800"}`} href="/app?section=archived">Archived</a>
+    </nav>
+
+    <section class="rounded-lg border border-slate-700 bg-slate-900 p-4 space-y-4">
+      <form class="grid gap-2 md:grid-cols-4" method="GET" action="/app">
+        <input type="hidden" name="section" value={section} />
+        <input class="rounded bg-slate-800 px-3 py-2" type="search" name="q" value={Astro.url.searchParams.get("q") ?? ""} placeholder="Search concepts" />
+        <select class="rounded bg-slate-800 px-3 py-2" name="subject">
+          <option value="">All subjects</option>
+          {subjects.map((subject) => <option value={subject!} selected={subjectFilter === subject}>{subject}</option>)}
+        </select>
+        <select class="rounded bg-slate-800 px-3 py-2" name="topic">
+          <option value="">All topics</option>
+          {topics.map((topic) => <option value={topic!} selected={topicFilter === topic}>{topic}</option>)}
+        </select>
+        <button class="rounded bg-slate-700 px-3 py-2" type="submit">Apply</button>
+      </form>
+
+      <div class="space-y-3">
+        {concepts.length === 0 ? <p class="text-slate-400">No concepts found for this filter.</p> : concepts.map((concept) => (
+          <article class={`rounded border p-4 ${concept.isImportant ? "border-amber-400 bg-amber-400/10" : "border-slate-700 bg-slate-800"}`}>
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <a class="text-lg font-semibold hover:underline" href={`/app/concepts/${concept.id}`}>{concept.title}</a>
+                <p class="text-sm text-slate-300 line-clamp-2">{concept.explanation}</p>
+                <p class="mt-1 text-xs text-slate-400">{concept.subject ?? "No subject"} · {concept.topic ?? "No topic"}</p>
+              </div>
+              <div class="flex gap-2">
+                <form method="POST" action="/api/concepts/toggle-important">
+                  <input type="hidden" name="id" value={concept.id} />
+                  <button class="rounded bg-slate-700 px-2 py-1 text-xs" type="submit">{concept.isImportant ? "Unmark" : "Important"}</button>
+                </form>
+                <form method="POST" action={concept.status === "archived" ? "/api/concepts/restore" : "/api/concepts/archive"}>
+                  <input type="hidden" name="id" value={concept.id} />
+                  <button class="rounded bg-slate-700 px-2 py-1 text-xs" type="submit">{concept.status === "archived" ? "Restore" : "Archive"}</button>
+                </form>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <dialog id="create-drawer" class="w-full max-w-2xl rounded-lg bg-slate-900 p-0 text-slate-100 backdrop:bg-black/60">
+    <form method="dialog" class="flex justify-end p-3"><button class="rounded bg-slate-700 px-3 py-1">Close</button></form>
+    <form method="POST" action="/api/concepts/create" class="grid gap-3 p-5">
+      <h3 class="text-xl font-semibold">Create concept</h3>
+      <input class="rounded bg-slate-800 px-3 py-2" name="title" placeholder="Title" required />
+      <input class="rounded bg-slate-800 px-3 py-2" name="subject" placeholder="Subject" />
+      <input class="rounded bg-slate-800 px-3 py-2" name="topic" placeholder="Topic" />
+      <textarea class="min-h-28 rounded bg-slate-800 px-3 py-2" name="explanation" placeholder="Explanation in simple language" required></textarea>
+      <textarea class="min-h-20 rounded bg-slate-800 px-3 py-2" name="exampleText" placeholder="Example"></textarea>
+      <textarea class="min-h-20 rounded bg-slate-800 px-3 py-2" name="notes" placeholder="Notes"></textarea>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="isImportant" value="true" /> Mark as important</label>
+      <button class="rounded bg-indigo-500 px-4 py-2" type="submit">Save concept</button>
+    </form>
+  </dialog>
+</AppShell>
