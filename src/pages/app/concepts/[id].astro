@@ -1,7 +1,6 @@
 ---
-import { and, db, eq } from "astro:db";
+import { Concepts, and, db, eq } from "astro:db";
 import AppShell from "../../../layouts/AppShell.astro";
-import { Concepts } from "../../../../db/tables";
 
 const user = Astro.locals.user;
 if (!user) return Astro.redirect("/");

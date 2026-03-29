@@ -1,6 +1,5 @@
 import type { APIRoute } from "astro";
-import { and, db, eq } from "astro:db";
-import { Concepts } from "../../../../db/tables";
+import { Concepts, and, db, eq } from "astro:db";
 import { getUserOrThrow } from "../../../lib/concept-auth";
 
 export const POST: APIRoute = async (context) => {

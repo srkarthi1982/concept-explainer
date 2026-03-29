@@ -1,8 +1,7 @@
 import type { ActionAPIContext } from "astro:actions";
 import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro:schema";
-import { and, db, desc, eq } from "astro:db";
-import { Concepts } from "../../db/tables";
+import { Concepts, and, db, desc, eq } from "astro:db";
 
 function requireUser(context: ActionAPIContext) {
   const user = (context.locals as App.Locals | undefined)?.user;
