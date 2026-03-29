@@ -25,6 +25,7 @@ MANDATORY: After completing each task, update this repo’s AGENTS.md Task Log (
 - Review this repo's existing AGENTS.md Task Log history before making changes.
 
 ## Task Log (Recent)
+- 2026-03-29 Fixed freeze-blocking invalid concept detail route during browser verification: non-numeric `/app/concepts/:id` now redirects safely to `/app?section=concepts` instead of throwing a 500, then revalidated browser flow plus `npm run typecheck` and `npm run build`.
 - 2026-03-29 Completed readiness repair pass after DB isolation sweep: switched runtime DB usage to generated `astro:db` tables across actions/pages/API routes, preserved app-specific Turso isolation, and revalidated `npm run typecheck`, `npm run build`, and `npm run db:push`.
 - 2026-03-29 Synced local repo to `origin/main` after stale local seed commit divergence blocked pull; preserved prior local state on `backup/pre-pull-sync-2026-03-29`.
 - 2026-03-25 Implemented Concept Explainer V1 (schema, actions, app/detail pages, search/filter, important/archive flows, dashboard+notification states).

@@ -6,7 +6,9 @@ const user = Astro.locals.user;
 if (!user) return Astro.redirect("/");
 
 const conceptId = Number(Astro.params.id);
-if (!Number.isInteger(conceptId)) throw new Error("Invalid concept id.");
+if (!Number.isInteger(conceptId)) {
+  return Astro.redirect("/app?section=concepts");
+}
 
 const [concept] = await db
   .select()
