@@ -1,33 +1,157 @@
 ---
 import AppShell from "../layouts/AppShell.astro";
-import { AvButton, AvContainer } from "@ansiversa/components";
+import LandingPageStandard from "../components/landing/LandingPageStandard.astro";
+import type { LandingPageContent } from "../lib/landing";
+
+const title = "Concept Explainer | Ansiversa";
+const description = "Keep concept explanations organized in a personal study workspace.";
+const rootAppUrl = Astro.locals.rootAppUrl ?? "https://ansiversa.com";
+const appUrl = new URL("/app", Astro.url).toString();
+const signInUrl = new URL("/login", rootAppUrl);
+signInUrl.searchParams.set("returnTo", appUrl);
+const startHref = Astro.locals.isAuthenticated ? "/app" : signInUrl.toString();
+
+const landingContent: LandingPageContent = {
+  categoryLabel: "Knowledge Workspace",
+  appLabel: "Authenticated DB-backed workspace",
+  title: "Keep your concept explanations clear and easy to revisit.",
+  subtitle:
+    "Create, update, mark important, archive, and restore concept records in a personal reference workspace built for review, not noise.",
+  heroBullets: [
+    "Capture concept title, explanation, and supporting notes in one personal record",
+    "Mark high-value concepts as important so they stay easy to surface later",
+    "Archive and restore older concepts without deleting your library",
+  ],
+  primaryCta: {
+    label: Astro.locals.isAuthenticated ? "Open Workspace" : "Sign in to Open",
+    href: startHref,
+  },
+  secondaryCta: {
+    label: "See Workflow",
+    href: "#workflow",
+    variant: "ghost",
+  },
+  heroNote:
+    "Current V1 is a personal concept library. It does not auto-generate explanations or act like a collaborative knowledge platform.",
+  heroPanel: {
+    eyebrow: "Concept flow",
+    title: "Create → Review → Revisit",
+    steps: [
+      "1. Save a concept explanation in your own words",
+      "2. Mark important items and keep the active library focused",
+      "3. Archive older concepts without losing the record",
+    ],
+    meta: [
+      { value: "DB", label: "Persistence" },
+      { value: "Per-user", label: "Ownership" },
+    ],
+  },
+  features: {
+    title: "What Concept Explainer gives you in V1",
+    lead:
+      "The product is built for personal explanation records with search and state control, not for AI explanation generation.",
+    items: [
+      {
+        title: "Structured concept records",
+        description:
+          "Keep concept explanations in a dedicated record instead of scattering them across generic notes.",
+      },
+      {
+        title: "Important-first review",
+        description:
+          "Mark high-value concepts as important so the concepts you return to most stay easy to find.",
+      },
+      {
+        title: "Detail route for full reading",
+        description:
+          "Open the concept detail route when you want the full concept explanation instead of a shorter workspace summary.",
+      },
+      {
+        title: "Archive-safe library",
+        description:
+          "Move older concepts out of the active view without deleting your explanation history.",
+      },
+    ],
+  },
+  pillars: {
+    title: "Why this works better than scattered study notes",
+    lead:
+      "The product stays narrow on purpose: one protected workspace, one concept model, and one clear place to keep your own explanations organized.",
+    items: [
+      {
+        title: "Truthful product boundary",
+        description:
+          "This is a personal concept workspace for explanations you write and maintain yourself, not an automatic AI explainer.",
+      },
+      {
+        title: "Explanation-first structure",
+        description:
+          "Concepts stay readable because the app is centered on explanation records rather than mixed note fragments.",
+      },
+      {
+        title: "Search and importance controls",
+        description:
+          "Search, important state, and archive views give the library enough shape to stay useful as it grows.",
+      },
+      {
+        title: "Safe personal access",
+        description:
+          "Protected routes and safe detail fallbacks keep one user’s concept library separate from another’s.",
+      },
+    ],
+  },
+  workflow: {
+    eyebrow: "How it works",
+    title: "Move from concept capture to reliable review",
+    lead:
+      "The workflow is designed for writing explanations clearly now and finding them again later without extra clutter.",
+    steps: [
+      {
+        title: "Create the concept",
+        description:
+          "Start in the protected workspace and save the concept explanation you want to keep in your own library.",
+      },
+      {
+        title: "Mark and organize what matters",
+        description:
+          "Use important state, search, and archive controls to shape the active concept set around what you need now.",
+      },
+      {
+        title: "Open details when you need full context",
+        description:
+          "Review or update the full concept on the detail route, then return to the workspace when the concept is in good shape.",
+      },
+    ],
+  },
+  showcase: {
+    eyebrow: "Current product shape",
+    title: "Built for personal concept review, not automatic explanation generation",
+    description:
+      "The landing copy stays aligned to the verified implementation: Concept Explainer helps one authenticated user maintain a DB-backed concept library with importance and archive controls.",
+    bullets: [
+      "Good fit for learners building a reusable personal explanation library",
+      "Centered on manual concept writing, review, important state, and archive/restore",
+    ],
+    calloutLabel: "Freeze truth",
+    calloutValue: "Personal concept library only",
+  },
+  finalCta: {
+    title: "Start building a concept library you can actually revisit",
+    description:
+      "Open the workspace, save the concepts in your own words, and keep the explanations that matter easy to surface later.",
+    primaryCta: {
+      label: Astro.locals.isAuthenticated ? "Open Workspace" : "Sign in to Open",
+      href: startHref,
+    },
+    secondaryCta: {
+      label: "Review Features",
+      href: "#features",
+      variant: "ghost",
+    },
+  },
+};
 ---
 
-<AppShell title="Concept Explainer – Ansiversa" description="Write clear explanations for your concepts.">
-  <section class="av-hero">
-    <AvContainer size="narrow" className="av-hero__content--narrow">
-      <div class="av-hero__content">
-        <div class="av-kicker"><span>Premium Learning · Ansiversa Mini App</span></div>
-        <h1 class="av-gradient-text">Concept Explainer</h1>
-        <p>Create your own simple explanations, examples, and notes for any topic.</p>
-      </div>
-      <div class="av-cta-row">
-        <AvButton href="/app">Open App</AvButton>
-      </div>
-    </AvContainer>
-  </section>
-
-  <section class="av-section">
-    <AvContainer size="narrow">
-      <div class="av-section-header">
-        <h2 class="av-section-title">Built for clear understanding</h2>
-        <p class="av-section-lead">Capture concepts in your own words and review them with focus.</p>
-      </div>
-      <ul class="space-y-2 text-slate-300 list-disc list-inside">
-        <li>Organize concepts by subject and topic.</li>
-        <li>Highlight important concepts for quick revision.</li>
-        <li>Archive old concepts while keeping your library tidy.</li>
-      </ul>
-    </AvContainer>
-  </section>
+<AppShell title={title} description={description}>
+  <LandingPageStandard content={landingContent} />
 </AppShell>

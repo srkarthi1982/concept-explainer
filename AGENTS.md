@@ -25,6 +25,7 @@ MANDATORY: After completing each task, update this repo’s AGENTS.md Task Log (
 - Review this repo's existing AGENTS.md Task Log history before making changes.
 
 ## Task Log (Recent)
+- 2026-04-08 Rolled out Landing Page Standard V1.1: replaced the minimal landing with the approved Ansiversa product-storytelling landing, kept concept-library truth aligned to app-spec/freeze behavior, and revalidated `npm run typecheck`, `npm run build`, and `/` CTA behavior.
 - 2026-03-30 Populated app-spec.md with implementation-aligned V1 documentation based on freeze verification.
 - 2026-03-30 Initialized app-spec.md using standard V1 template from web repo.
 - 2026-03-29 Fixed freeze-blocking invalid concept detail route during browser verification: non-numeric `/app/concepts/:id` now redirects safely to `/app?section=concepts` instead of throwing a 500, then revalidated browser flow plus `npm run typecheck` and `npm run build`.
